@@ -1,0 +1,47 @@
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.formset/1.2.2/jquery.formset.min.js"></script>
+
+<script>
+ $(document).ready(function() {
+  $('.formset').formset({
+    addText: 'Add Image',
+    deleteText: 'Remove',
+    prefix: 'gallery_set',
+    added: function(row) {
+      // Get the number of existing forms
+      var formCount = $('.formset .form-row').length;
+
+      // Loop through each form and populate the file input
+      for (var i = 0; i < formCount; i++) {
+        var fileInput = $(row).find('.form-row:eq(' + i + ') .file-input');
+        var imageUrl = '{{ formset.management_form.instance.gallery_set.all.0.image.url }}';  // Modify this line to get the correct URL for each image
+
+        // Set the image URL as the value of the file input
+        fileInput.val(imageUrl);
+      }
+    }
+  });
+});
+</script>
+
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+  <a class="navbar-brand" href="{% url 'home' %}">Home</a>
+</nav>
+
+<form method="POST" action="{% url 'edit_thumbnail' thumbnail.id %}" enctype="multipart/form-data">
+    {% csrf_token %}
+    {{ form.as_p }}
+    {{ formset.management_form }}
+    <div class="formset">
+        {% for form in formset %}
+            {{ form.as_table }}
+        {% endfor %}
+    </div>
+    <button type="submit" class="btn btn-primary">Update</button>
+</form>
+
+

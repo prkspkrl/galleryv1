@@ -1,0 +1,47 @@
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.formset/1.2.2/jquery.formset.min.js"></script>
+
+<script>
+$(document).ready(function() {
+    $('.formset').formset({
+        addText: 'Add Image',
+        deleteText: 'Remove',
+        prefix: 'gallery_set'
+    });
+
+    $('input[type="file"]').on('change', function() {
+        var fileSize = this.files[0].size; // Get the file size in bytes
+        var maxSize = 2097152; //  (2MB max)
+
+        if (fileSize > maxSize) {
+            $(this).val(''); // Clear the input value
+            alert('File size must be smaller than 2MB.');
+        }
+    });
+});
+</script>
+
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+  <a class="navbar-brand" href="{% url 'home' %}"> Home </a>
+</nav>
+
+
+<form method="POST" action="{% url 'galleryform' %}" enctype="multipart/form-data" style="max-width: 400px; margin: 0 auto;">
+    {% csrf_token %}
+
+    {{ thumbnail_form.as_p }}
+    {{ formset.management_form }}
+    <div class="formset">
+        {% for form in formset %}
+            {{ form.as_table }}
+        {% endfor %}
+    </div>
+
+  <button type="submit" class="btn btn-primary">Submit</button>
+</form>
+
+
