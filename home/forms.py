@@ -1,5 +1,6 @@
-from django import forms
+from django.core.files.uploadedfile import UploadedFile
 from .models import Thumbnail, Gallery
+from django import forms
 from django.forms import inlineformset_factory
 from PIL import Image
 from io import BytesIO
@@ -9,11 +10,10 @@ class ThumbnailForm(forms.ModelForm):
         model = Thumbnail
         fields = '__all__'
 
-
     def clean_image(self):
         image = self.cleaned_data.get('image')
 
-        if image:
+        if isinstance(image, UploadedFile):
             if not image.content_type.startswith('image'):
                 raise forms.ValidationError("Only image files are allowed.")
 
@@ -22,7 +22,7 @@ class ThumbnailForm(forms.ModelForm):
                 raise forms.ValidationError("File size exceeds the limit of 2MB.")
 
             try:
-                img = Image.open(image.file)
+                img = Image.open(image)
 
                 if img.format != 'JPEG':
                     image_buffer = BytesIO()
@@ -30,9 +30,7 @@ class ThumbnailForm(forms.ModelForm):
                     img.save(image_buffer, format='JPEG', quality=90)
 
                     # Update the image field with the converted image
-                    image.file = image_buffer
-                    image.name = image.name.rsplit('.', 1)[0] + '.jpg'
-                    image.content_type = 'image/jpeg'
+                    image = UploadedFile(image_buffer, image.name, 'image/jpeg')
 
             except Exception as e:
                 raise forms.ValidationError("An error occurred while converting the image to JPEG format.")
@@ -42,9 +40,8 @@ class ThumbnailForm(forms.ModelForm):
 GalleryFormSet = inlineformset_factory(
     Thumbnail,
     Gallery,
+    form=ThumbnailForm,
     fields=('image',),
     extra=1,
     can_delete=False
 )
-
-
